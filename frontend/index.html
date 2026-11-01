@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>我的博客</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>我的博客</h1>
+  <div id="posts" class="loading">加载中...</div>
+
+  <script>
+    // ⚠️ 部署 Worker 后替换成你的地址
+    const API = "https://my-blog-api.YOUR_SUBDOMAIN.workers.dev";
+
+    fetch(`${API}/api/posts`)
+      .then(r => r.json())
+      .then(posts => {
+        const box = document.getElementById("posts");
+        if (!posts.length) {
+          box.innerHTML = "<p>还没有文章。</p>";
+          return;
+        }
+        box.innerHTML = posts.map(p => `
+          <div class="post-card">
+            <h2><a href="post.html?slug=${encodeURIComponent(p.slug)}">${p.title}</a></h2>
+            <div class="post-meta">${p.created_at || ""}</div>
+          </div>
+        `).join("");
+      })
+      .catch(() => {
+        document.getElementById("posts").innerHTML = "<p>加载失败，请检查 API 地址。</p>";
+      });
+  </script>
+</body>
+</html>
