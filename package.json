@@ -1,0 +1,27 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "description": "blog - Cloudflare Workers",
+  "main": "worker/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "d1:create": "wrangler d1 create blog-db",
+    "d1:init": "wrangler d1 execute blog-db --remote --file=./worker/schema.sql",
+    "d1:init:local": "wrangler d1 execute blog-db --local --file=./worker/schema.sql",
+    "d1:query": "wrangler d1 execute blog-db --remote --command",
+    "d1:query:local": "wrangler d1 execute blog-db --local --command",
+    "preview": "wrangler dev"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "d1",
+    "blog"
+  ],
+  "author": "web",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  }
+}

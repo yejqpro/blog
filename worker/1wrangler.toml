@@ -1,0 +1,8 @@
+name = "blog"
+main = "worker/index.js"
+compatibility_date = "2026-10-30"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blog-db"
+database_id = "f5598d4e-b58f-4c4f-b02b-6a6ee2112d0e"
