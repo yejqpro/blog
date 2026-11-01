@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>文章 - 我的博客</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <p><a href="index.html">← 返回首页</a></p>
+  <article id="post" class="loading">加载中...</article>
+
+  <h3>评论</h3>
+  <div id="comments"></div>
+
+  <form class="comment-form" id="commentForm">
+    <input type="text" id="author" placeholder="你的昵称" required maxlength="50">
+    <textarea id="body" rows="3" placeholder="写下你的评论..." required maxlength="1000"></textarea>
+    <button type="submit">提交评论</button>
+  </form>
+
+  <script>
+    // ⚠️ 部署 Worker 后替换成你的地址
+    const API = "https://my-blog-api.YOUR_SUBDOMAIN.workers.dev";
+    const slug = new URLSearchParams(location.search).get("slug");
+
+    if (!slug) {
+      document.getElementById("post").textContent = "缺少文章标识。";
+    } else {
+      // 加载文章
+      fetch(`${API}/api/posts/${encodeURIComponent(slug)}`)
+        .then(r => r.json())
+        .then(post => {
+          if (post.error) throw new Error(post.error);
+          document.title = post.title + " - 我的博客";
+          document.getElementById("post").innerHTML = `
+            <h1>${post.title}</h1>
+            <div class="post-meta">${post.created_at || ""}</div>
+            <div class="content"></div>
+          `;
+          document.querySelector(".content").textContent = post.content;
+        })
+        .catch(() => {
+          document.getElementById("post").textContent = "文章不存在。";
+        });
+
+      // 加载评论
+      function loadComments() {
+        fetch(`${API}/api/comments?slug=${encodeURIComponent(slug)}`)
+          .then(r => r.json())
+          .then(list => {
+            const box = document.getElementById("comments");
+            box.innerHTML = list.length
+              ? list.map(c => `
+                  <div class="comment-item">
+                    <div class="meta"><strong>${c.author}</strong> · ${c.created_at}</div>
+                    <div>${escapeHtml(c.body)}</div>
+                  </div>
+                `).join("")
+              : "<p class='loading'>暂无评论，来写第一条吧。</p>";
+          });
+      }
+      loadComments();
+
+      // 提交评论
+      document.getElementById("commentForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const res = await fetch(`${API}/api/comments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slug,
+            author: document.getElementById("author").value,
+            body: document.getElementById("body").value,
+          }),
+        });
+        if (res.ok) {
+          document.getElementById("body").value = "";
+          loadComments();
+        } else {
+          alert("提交失败，请稍后再试。");
+        }
+      });
+
+      function escapeHtml(s) {
+        return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      }
+    }
+  </script>
+</body>
+</html>
