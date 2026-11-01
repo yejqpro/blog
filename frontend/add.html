@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>新增文章 - 我的博客</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>新增文章</h1>
+    <nav>
+      <a href="index.html">← 返回首页</a>
+    </nav>
+  </header>
+
+  <main>
+    <form id="postForm" class="post-form">
+      <div class="form-group">
+        <label for="slug">文章标识（Slug）</label>
+        <input type="text" id="slug" name="slug" placeholder="如：my-first-article" required>
+        <small>URL 路径标识，只能使用小写字母、数字和短横线</small>
+      </div>
+
+      <div class="form-group">
+        <label for="title">文章标题</label>
+        <input type="text" id="title" name="title" placeholder="请输入文章标题" required>
+      </div>
+
+      <div class="form-group">
+        <label for="content">文章内容</label>
+        <textarea id="content" name="content" rows="15" placeholder="请输入文章内容，支持 Markdown 格式" required></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">发布文章</button>
+    </form>
+
+    <div id="message" class="message" style="display: none;"></div>
+  </main>
+
+  <script>
+    // ⚠️ 部署 Worker 后替换成你的地址
+    const API = "https://blog.kingtsing1.workers.dev";
+
+    const form = document.getElementById('postForm');
+    const messageDiv = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const slug = document.getElementById('slug').value.trim();
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+
+      if (!slug || !title || !content) {
+        showMessage('请填写所有字段', 'error');
+        return;
+      }
+
+      // 规范化 slug
+      const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      document.getElementById('slug').value = cleanSlug;
+
+      try {
+        const response = await fetch(`${API}/api/posts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            slug: cleanSlug,
+            title: title,
+            content: content
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage(`文章发布成功！<a href="post.html?slug=${encodeURIComponent(cleanSlug)}">查看文章</a>`, 'success');
+          form.reset();
+        } else {
+          showMessage(data.error || '发布失败', 'error');
+        }
+      } catch (error) {
+        console.error('发布失败:', error);
+        showMessage('发布失败，请检查网络连接或 API 地址', 'error');
+      }
+    });
+
+    function showMessage(text, type) {
+      messageDiv.innerHTML = text;
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.display = 'block';
+      
+      // 5 秒后自动隐藏成功消息
+      if (type === 'success') {
+        setTimeout(() => {
+          messageDiv.style.display = 'none';
+        }, 5000);
+      }
+    }
+  </script>
+</body>
+</html>

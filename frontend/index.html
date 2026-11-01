@@ -7,7 +7,12 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>我的博客</h1>
+  <header>
+    <h1>我的博客</h1>
+    <nav>
+      <a href="add.html">+ 新增文章</a>
+    </nav>
+  </header>
   <div id="posts" class="loading">加载中...</div>
 
   <script>
@@ -19,7 +24,7 @@
       .then(posts => {
         const box = document.getElementById("posts");
         if (!posts.length) {
-          box.innerHTML = "<p>还没有文章。</p>";
+          box.innerHTML = "<p>还没有文章。<a href='add.html'>去写第一篇文章吧</a>！</p>";
           return;
         }
         box.innerHTML = posts.map(p => `
